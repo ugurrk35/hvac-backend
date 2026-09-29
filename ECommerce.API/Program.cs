@@ -365,6 +365,57 @@ using (var scope = app.Services.CreateScope())
         await db.SaveChangesAsync();
         app.Logger.LogInformation("Mevcut HTML içerikleri güvenli biçimde temizlendi.");
     }
+
+    var bootstrapEmail = builder.Configuration["BootstrapAdmin:Email"]?.Trim();
+    var bootstrapPassword = builder.Configuration["BootstrapAdmin:Password"];
+    if (string.IsNullOrWhiteSpace(bootstrapEmail) != string.IsNullOrWhiteSpace(bootstrapPassword))
+    {
+        throw new InvalidOperationException("BootstrapAdmin:Email ve BootstrapAdmin:Password birlikte tanımlanmalıdır.");
+    }
+
+    if (!string.IsNullOrWhiteSpace(bootstrapEmail))
+    {
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            var roleResult = await roleManager.CreateAsync(new ApplicationRole { Name = "Admin" });
+            if (!roleResult.Succeeded)
+                throw new InvalidOperationException($"Admin rolü oluşturulamadı: {string.Join("; ", roleResult.Errors.Select(error => error.Description))}");
+        }
+
+        var admin = await userManager.FindByEmailAsync(bootstrapEmail);
+        if (admin == null)
+        {
+            admin = new ApplicationUser
+            {
+                UserName = bootstrapEmail.ToLowerInvariant(),
+                Email = bootstrapEmail,
+                EmailConfirmed = true,
+                FirstName = builder.Configuration["BootstrapAdmin:FirstName"]?.Trim() ?? "Site",
+                LastName = builder.Configuration["BootstrapAdmin:LastName"]?.Trim() ?? "Yöneticisi",
+                IsActive = true,
+                IsGuest = false,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = "BootstrapAdmin"
+            };
+
+            var createResult = await userManager.CreateAsync(admin, bootstrapPassword!);
+            if (!createResult.Succeeded)
+                throw new InvalidOperationException($"Başlangıç admin kullanıcısı oluşturulamadı: {string.Join("; ", createResult.Errors.Select(error => error.Description))}");
+
+            app.Logger.LogInformation("Başlangıç admin kullanıcısı oluşturuldu: {Email}", bootstrapEmail);
+        }
+
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            var addRoleResult = await userManager.AddToRoleAsync(admin, "Admin");
+            if (!addRoleResult.Succeeded)
+                throw new InvalidOperationException($"Başlangıç admin kullanıcısına rol atanamadı: {string.Join("; ", addRoleResult.Errors.Select(error => error.Description))}");
+        }
+    }
+
     app.Logger.LogInformation("Veritabanı hazır.");
 }
 
