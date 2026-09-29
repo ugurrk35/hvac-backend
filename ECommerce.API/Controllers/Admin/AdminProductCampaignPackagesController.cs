@@ -22,6 +22,27 @@ public class AdminProductCampaignPackagesController(ApplicationDbContext db) : C
         products = await db.Products.AsNoTracking().Where(item => item.IsActive && !item.IsDeleted).OrderBy(item => item.Name).Select(item => new { item.Id, item.Name, item.SKU }).ToListAsync()
     });
 
+    [HttpGet("analytics")]
+    public async Task<IActionResult> Analytics([FromQuery] int days = 30)
+    {
+        days = Math.Clamp(days, 1, 365);
+        var since = DateTime.UtcNow.AddDays(-days);
+        var packages = await db.ProductCampaignPackages.AsNoTracking().Where(item => !item.IsDeleted)
+            .Select(item => new { item.Id, item.ProductId, item.Product.Name, item.Title }).ToListAsync();
+        var eventCounts = await db.ProductCampaignEvents.AsNoTracking().Where(item => !item.IsDeleted && item.CreatedAt >= since && item.ProductCampaignPackageId != null)
+            .GroupBy(item => new { PackageId = item.ProductCampaignPackageId!.Value, item.EventType })
+            .Select(group => new { group.Key.PackageId, group.Key.EventType, Count = group.Count() }).ToListAsync();
+        var conversions = await db.OrderItems.AsNoTracking().Where(item => !item.IsDeleted && item.CreatedAt >= since && item.ProductCampaignPackageId != null)
+            .GroupBy(item => item.ProductCampaignPackageId!.Value)
+            .Select(group => new { PackageId = group.Key, Orders = group.Select(item => item.OrderId).Distinct().Count(), Revenue = group.Sum(item => item.Price * item.Quantity) }).ToListAsync();
+        var result = packages.Select(package => new ProductCampaignAnalyticsDto(
+            package.Id, package.ProductId, package.Name, package.Title,
+            eventCounts.Where(item => item.PackageId == package.Id).ToDictionary(item => item.EventType, item => item.Count),
+            conversions.FirstOrDefault(item => item.PackageId == package.Id)?.Orders ?? 0,
+            conversions.FirstOrDefault(item => item.PackageId == package.Id)?.Revenue ?? 0m)).ToList();
+        return Ok(DataResponse<IEnumerable<ProductCampaignAnalyticsDto>>.CreateSuccess(result));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] SaveProductCampaignPackageRequest request)
     {
@@ -82,3 +103,4 @@ public record ProductCampaignPackageAdminDto(int Id, int ProductId, string Produ
 public record ProductCampaignLocationDto(int Id, string City, string? District, decimal PriceAdjustment);
 public record ProductCampaignGroupDto(int Id, string Code, string Label, bool IsRequired, List<ProductCampaignOptionDto> Options);
 public record ProductCampaignOptionDto(int Id, string Label, decimal PriceAdjustment, bool IsDefault);
+public record ProductCampaignAnalyticsDto(int PackageId, int ProductId, string ProductName, string Title, Dictionary<string, int> Events, int Orders, decimal Revenue);
