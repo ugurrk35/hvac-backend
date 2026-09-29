@@ -1,0 +1,92 @@
+﻿1. Kullanıcı Sepeti Tamamladı
+Kullanıcı Next.js’de ürünleri seçip sepete ekler.
+
+Sepet sayfasında “Ödeme Yap” butonuna basar.
+
+2. Ödeme Talebi Frontend’den Backend’e
+Next.js, ödeme başlatmak için backend API’sine (POST /api/payment/process) bir istek atar.
+
+İstek içinde sepete bağlı orderId ve seçilen ödeme sağlayıcı gibi bilgiler yer alır.
+
+ts
+Kopyala
+Düzenle
+// örnek Next.js çağrısı
+const response = await fetch('/api/payment/process', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ orderId, paymentProvider })
+});
+const data = await response.json();
+3. Backend Ödeme İşlemini Başlatır
+Backend:
+
+orderId ile sipariş detaylarını veritabanından çeker.
+
+Ödeme sağlayıcıya uygun PaymentRequest oluşturur (ürünler, tutar, müşteri bilgileri vs).
+
+Ödeme sağlayıcı API’sine istek yapar (örn. PayTR, iyzico, vs).
+
+Ödeme sağlayıcıdan dönen iframeUrl veya ödeme sayfası linki ve token bilgisini alır.
+
+Siparişin ödeme durumu “Pending” olarak güncellenir.
+
+Backend, Next.js’e ödeme için gerekli URL ve token bilgisini JSON olarak döner.
+
+4. Frontend Ödeme Formunu Gösterir
+Next.js, gelen iframeUrl veya ödeme sayfası linkini kullanıcıya gösterir.
+
+Bu genelde iframe içinde harici ödeme sağlayıcı sayfası ya da ödeme widget’ı olarak açılır.
+
+Kullanıcı ödeme bilgilerini girip işlemi tamamlar.
+
+5. Ödeme Sağlayıcı Callback Gönderir
+Ödeme sağlayıcı, ödeme sonucu hakkında bilgiyi backend’in callback endpoint’ine gönderir (örn. /api/payment/callback/paytr).
+
+Backend, callback verisini alır ve doğrular:
+
+Ödemenin başarılı mı, iptal mi, hata mı olduğu kontrol edilir.
+
+Siparişin ödeme durumu ve genel durumu buna göre güncellenir.
+
+Backend bu callback isteğine “OK” ile cevap verir.
+
+6. Frontend Ödeme Sonucunu Alır / Kontrol Eder
+Ödeme işlemi tamamlandıktan sonra frontend:
+
+Ödeme sağlayıcının yönlendirdiği success veya fail URL’sine kullanıcıyı yönlendirir.
+
+Ya da backend API’den ödeme durumunu sorgular ve kullanıcıya başarılı/başarısız mesajı gösterir.
+
+7. Kullanıcıya Geri Bildirim Verilir
+Next.js sayfası ödeme durumuna göre:
+
+Başarılı ise “Ödemeniz başarıyla tamamlandı” mesajı,
+
+Başarısız ise “Ödeme başarısız, lütfen tekrar deneyin” mesajı gösterir.
+
+Özet Akış Şeması
+Kullanıcı “Ödeme Yap” →
+
+Next.js → POST /api/payment/process → Backend
+
+Backend → Ödeme sağlayıcıya istek → Ödeme sayfası URL’si döner
+
+Next.js → Ödeme sayfasını iframe’de açar
+
+Kullanıcı ödeme yapar
+
+Ödeme sağlayıcı → Backend’e callback yapar
+
+Backend → Ödeme durumunu günceller
+
+Next.js → Kullanıcıyı sonuç sayfasına yönlendirir / sonuç bildirir
+
+Teknik Öneriler
+Ödeme sırasında sipariş ve ödeme durumları backend’de tutulsun.
+
+Ödeme callback’lerinde doğrulama mutlaka yapılsın (hash, token, IP doğrulama vs).
+
+Frontend’de ödeme sonucu API’den sorgulanabilir ve gösterilebilir.
+
+Ödeme formlarını backend değil, frontend (Next.js) oluşturmalı veya iframe ile ödeme sağlayıcı formu gösterilmeli.

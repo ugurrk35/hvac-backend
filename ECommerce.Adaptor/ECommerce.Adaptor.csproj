@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Payment\PayTR\Config\**" />
+    <Compile Remove="Payment\PayTR\Constants\**" />
+    <Compile Remove="Payment\PayTR\Dtos\**" />
+    <Compile Remove="Payment\PayTR\Helpers\**" />
+    <Compile Remove="Payment\PayTR\Services\**" />
+    <EmbeddedResource Remove="Payment\PayTR\Config\**" />
+    <EmbeddedResource Remove="Payment\PayTR\Constants\**" />
+    <EmbeddedResource Remove="Payment\PayTR\Dtos\**" />
+    <EmbeddedResource Remove="Payment\PayTR\Helpers\**" />
+    <EmbeddedResource Remove="Payment\PayTR\Services\**" />
+    <None Remove="Payment\PayTR\Config\**" />
+    <None Remove="Payment\PayTR\Constants\**" />
+    <None Remove="Payment\PayTR\Dtos\**" />
+    <None Remove="Payment\PayTR\Helpers\**" />
+    <None Remove="Payment\PayTR\Services\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Payment\Abstract\IPaymentAdapter.cs" />
+    <Compile Remove="Payment\Abstract\IPaymentService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>

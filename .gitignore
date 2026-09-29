@@ -1,0 +1,12 @@
+# Build and IDE output
+[Bb]in/
+[Oo]bj/
+.vs/
+
+# Local secrets and environment-specific configuration
+ECommerce.API/appsettings.Development.json
+ECommerce.API/appsettings.Production.json
+ECommerce.API/appsettings.Local.json
+.env
+.env.*
+!.env.example

@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  ecommerce-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: 'http://0.0.0.0:80'
+    volumes:
+      - './wwwroot/uploads:/app/wwwroot/uploads'
+    networks:
+      - shared-network
+    expose:
+      - '80'
+    # NO depends_on needed ✅
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  shared-network:
+    external: true
