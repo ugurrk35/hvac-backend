@@ -91,6 +91,11 @@ namespace ECommerce.Repository.Data
         public virtual DbSet<ShippingMethodRateOverride> ShippingMethodRateOverrides { get; set; }
         public virtual DbSet<ShippingCheckoutSettings> ShippingCheckoutSettings { get; set; }
         public virtual DbSet<Campaign> Campaigns { get; set; }
+        public virtual DbSet<ProductCampaignPackage> ProductCampaignPackages { get; set; }
+        public virtual DbSet<ProductCampaignLocationRule> ProductCampaignLocationRules { get; set; }
+        public virtual DbSet<ProductCampaignLookupGroup> ProductCampaignLookupGroups { get; set; }
+        public virtual DbSet<ProductCampaignLookupOption> ProductCampaignLookupOptions { get; set; }
+        public virtual DbSet<ProductCampaignEvent> ProductCampaignEvents { get; set; }
 
         public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public virtual DbSet<CartItem> CartItems { get; set; }
@@ -293,6 +298,43 @@ namespace ECommerce.Repository.Data
                 .WithOne(sel => sel.CartItem)
                 .HasForeignKey(sel => sel.CartItemId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductCampaignPackage>(entity =>
+            {
+                entity.Property(item => item.Title).HasMaxLength(200).IsRequired();
+                entity.Property(item => item.Description).HasMaxLength(1000);
+                entity.Property(item => item.StartingPrice).HasPrecision(18, 2);
+                entity.HasIndex(item => new { item.ProductId, item.IsDeleted });
+                entity.HasOne(item => item.Product).WithMany().HasForeignKey(item => item.ProductId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<ProductCampaignEvent>(entity =>
+            {
+                entity.Property(item => item.EventType).HasMaxLength(64).IsRequired();
+                entity.Property(item => item.VisitorId).HasMaxLength(100);
+                entity.Property(item => item.MetadataJson).HasColumnType("text");
+                entity.HasIndex(item => new { item.ProductCampaignPackageId, item.EventType, item.CreatedAt });
+            });
+            builder.Entity<ProductCampaignLocationRule>(entity =>
+            {
+                entity.Property(item => item.City).HasMaxLength(100).IsRequired();
+                entity.Property(item => item.District).HasMaxLength(100);
+                entity.Property(item => item.PriceAdjustment).HasPrecision(18, 2);
+                entity.HasIndex(item => new { item.ProductCampaignPackageId, item.City, item.District });
+                entity.HasOne(item => item.ProductCampaignPackage).WithMany(item => item.LocationRules).HasForeignKey(item => item.ProductCampaignPackageId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<ProductCampaignLookupGroup>(entity =>
+            {
+                entity.Property(item => item.Code).HasMaxLength(80).IsRequired();
+                entity.Property(item => item.Label).HasMaxLength(200).IsRequired();
+                entity.HasIndex(item => new { item.ProductCampaignPackageId, item.Code }).IsUnique();
+                entity.HasOne(item => item.ProductCampaignPackage).WithMany(item => item.LookupGroups).HasForeignKey(item => item.ProductCampaignPackageId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<ProductCampaignLookupOption>(entity =>
+            {
+                entity.Property(item => item.Label).HasMaxLength(250).IsRequired();
+                entity.Property(item => item.PriceAdjustment).HasPrecision(18, 2);
+                entity.HasOne(item => item.ProductCampaignLookupGroup).WithMany(item => item.Options).HasForeignKey(item => item.ProductCampaignLookupGroupId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             builder.Entity<CustomerAddress>(entity =>
             {

@@ -8,6 +8,8 @@ using System.ComponentModel.DataAnnotations;
 using ECommerce.API.Filters;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text.Json;
+using ECommerce.API.Services;
 
 namespace ECommerce.API.Controllers
 {
@@ -19,13 +21,19 @@ namespace ECommerce.API.Controllers
     {
         private readonly IShoppingCartService _shoppingCartService;
         private readonly ILogger<ShoppingCartController> _logger;
+        private readonly ProductCampaignQuoteService _campaignQuotes;
+        private readonly IWebHostEnvironment _environment;
 
         public ShoppingCartController(
             IShoppingCartService shoppingCartService,
-            ILogger<ShoppingCartController> logger)
+            ILogger<ShoppingCartController> logger,
+            ProductCampaignQuoteService campaignQuotes,
+            IWebHostEnvironment environment)
         {
             _shoppingCartService = shoppingCartService;
             _logger = logger;
+            _campaignQuotes = campaignQuotes;
+            _environment = environment;
         }
         /// <summary>
         /// Kullanıcı için yeni sepet oluşturur
@@ -328,6 +336,40 @@ namespace ECommerce.API.Controllers
                 _logger.LogError(ex, "Error adding item to cart {CartId}", cartId);
                 return StatusCode(500, BaseResponse.CreateFailure("Ürün sepete ekleme işlemi sırasında bir hata oluştu"));
             }
+        }
+
+        /// <summary>Adds a campaign package using a server-authoritative price quote.</summary>
+        [HttpPost("{cartId:int}/campaign-items")]
+        public async Task<IActionResult> AddCampaignItemToCart(int cartId, [FromBody] AddCampaignItemRequestDto request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (request.Quantity < 1) return BadRequest(BaseResponse.CreateFailure("Miktar 1'den büyük olmalıdır."));
+                if (!string.IsNullOrWhiteSpace(request.AddressLine) && request.AddressLine.Trim().Length > 1000) return BadRequest(BaseResponse.CreateFailure("Adres en fazla 1000 karakter olabilir."));
+                if (request.PreferredDate is { } preferredDate && preferredDate < DateOnly.FromDateTime(DateTime.UtcNow)) return BadRequest(BaseResponse.CreateFailure("Keşif tarihi geçmiş bir tarih olamaz."));
+                if ((request.PhotoUrls ?? []).Any(url => !url.StartsWith("/uploads/campaigns/", StringComparison.Ordinal))) return BadRequest(BaseResponse.CreateFailure("Geçersiz kampanya fotoğrafı."));
+                var campaignPhotoDirectory = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "uploads", "campaigns");
+                if ((request.PhotoUrls ?? []).Any(url => !System.IO.File.Exists(Path.Combine(campaignPhotoDirectory, Path.GetFileName(url))))) return BadRequest(BaseResponse.CreateFailure("Yüklenen kampanya fotoğrafı bulunamadı."));
+                var package = await _campaignQuotes.GetActivePackageByIdAsync(request.PackageId, cancellationToken);
+                if (package?.RequiresExistingDevicePhoto == true && !(request.PhotoUrls?.Any() ?? false)) return BadRequest(BaseResponse.CreateFailure("Bu kampanya için mevcut cihaz fotoğrafı zorunludur."));
+                var quote = await _campaignQuotes.QuoteAsync(request.PackageId, new ProductCampaignQuoteRequest(request.City, request.District, request.OptionIds), cancellationToken);
+                if (quote.ProductId != request.ProductId) return BadRequest(BaseResponse.CreateFailure("Kampanya paketi seçilen ürüne ait değil."));
+                var snapshot = JsonSerializer.Serialize(new
+                {
+                    quote.PackageId, quote.Title, quote.StartingPrice, quote.City, quote.District,
+                    request.AddressLine, request.PreferredDate, photos = request.PhotoUrls, quote.LocationAdjustment, quote.Selections, quote.Total
+                });
+                await _shoppingCartService.AddItemToCartAsync(cartId, new CartItem
+                {
+                    ProductId = quote.ProductId,
+                    Quantity = request.Quantity,
+                    ProductCampaignPackageId = quote.PackageId,
+                    UnitPriceSnapshot = quote.Total,
+                    CampaignSnapshotJson = snapshot
+                });
+                return Ok(DataResponse<ProductCampaignQuoteResult>.CreateSuccess(quote, "Kampanyalı ürün sepete eklendi."));
+            }
+            catch (ArgumentException exception) { return BadRequest(BaseResponse.CreateFailure(exception.Message)); }
         }
 
         /// <summary>
@@ -675,6 +717,19 @@ namespace ECommerce.API.Controllers
         public int? ProductAttributeCombinationId { get; set; }
 
         public List<CartItemAttributeSelectionRequestDto>? Attributes { get; set; }
+    }
+
+    public class AddCampaignItemRequestDto
+    {
+        [Required] public int ProductId { get; set; }
+        [Required] public int PackageId { get; set; }
+        [Range(1, int.MaxValue)] public int Quantity { get; set; } = 1;
+        [Required] public string? City { get; set; }
+        public string? District { get; set; }
+        public List<int>? OptionIds { get; set; }
+        public string? AddressLine { get; set; }
+        public DateOnly? PreferredDate { get; set; }
+        public List<string>? PhotoUrls { get; set; }
     }
 
     public class UpdateQuantityRequestDto

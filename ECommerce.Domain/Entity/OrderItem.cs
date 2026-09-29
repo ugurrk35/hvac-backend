@@ -20,6 +20,8 @@ namespace ECommerce.Domain.Entity
         public bool IsGift { get; set; }
         public string? ProductImageUrl { get; set; }
         public string? VariantSnapshot { get; set; }
+        public int? ProductCampaignPackageId { get; set; }
+        public string? CampaignSnapshotJson { get; set; }
         public int? ProductAttributeCombinationId { get; set; }
         public ProductAttributeCombination ProductAttributeCombination { get; set; }
     }

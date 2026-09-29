@@ -546,6 +546,8 @@ namespace ECommerce.Service.Concrete
                         ProductName = product.Name,
                         ProductImageUrl = cartItem.Product?.ProductImages?.OrderBy(image => image.SortOrder).FirstOrDefault()?.Image?.Url ?? product.OgImage,
                         VariantSnapshot = string.Join("; ", cartItem.AttributeSelections.Select(selection => $"{selection.ProductAttribute?.Name}: {selection.ProductAttributeValue?.Value ?? selection.PersonalizationText}").Where(value => !value.EndsWith(": "))),
+                        ProductCampaignPackageId = cartItem.ProductCampaignPackageId,
+                        CampaignSnapshotJson = cartItem.CampaignSnapshotJson,
                         ProductAttributeCombinationId = cartItem.ProductAttributeCombinationId
                     });
                 }

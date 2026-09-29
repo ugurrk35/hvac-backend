@@ -29,6 +29,8 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
             : product.BasePrice;
     }
 
+    private static decimal GetEffectiveUnitPrice(CartItem item) => item.UnitPriceSnapshot ?? GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination);
+
     public async Task<ShoppingCart?> GetCartWithDetailsAsync(int cartId)
     {
         try
@@ -138,7 +140,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
                 .Where(ci => ci.ShoppingCartId == cartId)
                 .ToListAsync();
 
-            return items.Sum(item => GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination) * item.Quantity);
+            return items.Sum(item => GetEffectiveUnitPrice(item) * item.Quantity);
         }
         catch (Exception ex)
         {
@@ -453,7 +455,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
                 throw new InvalidOperationException($"Shopping cart {cartId} not found.");
 
             cart.LastModifiedAt = DateTime.UtcNow;
-            var effectiveUnitPrice = GetEffectiveUnitPrice(product, selectedCombination);
+            var effectiveUnitPrice = item.UnitPriceSnapshot ?? GetEffectiveUnitPrice(product, selectedCombination);
             cart.TotalAmount += effectiveUnitPrice * item.Quantity; // Toplam fiyatı güncelle
 
             await _dbContext.SaveChangesAsync();
@@ -480,7 +482,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
 
             if (item != null)
             {
-                var productPrice = item.Product == null ? 0m : GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination);
+                var productPrice = item.Product == null ? 0m : GetEffectiveUnitPrice(item);
                 var totalDelta = productPrice * item.Quantity;
 
                 _dbContext.CartItems.Remove(item);
@@ -521,7 +523,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
                 if (cart != null)
                 {
                     cart.LastModifiedAt = DateTime.UtcNow;
-                    var unitPrice = item.Product == null ? 0m : GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination);
+                    var unitPrice = item.Product == null ? 0m : GetEffectiveUnitPrice(item);
                     var deltaQuantity = newQuantity - oldQuantity;
                     cart.TotalAmount = Math.Max(0m, cart.TotalAmount + (unitPrice * deltaQuantity));
                 }
@@ -576,7 +578,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
                 .Where(ci => ci.ShoppingCartId == cartId)
                 .ToListAsync();
 
-            return items.Sum(item => GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination) * item.Quantity);
+            return items.Sum(item => GetEffectiveUnitPrice(item) * item.Quantity);
         }
         catch (Exception ex)
         {
@@ -735,7 +737,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
                 var discountPrice = !hasVariantPrice && ci.Product?.DiscountPrice is > 0 and var discount && discount < basePrice
                     ? discount
                     : (decimal?)null;
-                var unitPrice = discountPrice ?? basePrice;
+                var unitPrice = ci.UnitPriceSnapshot ?? discountPrice ?? basePrice;
 
                 return new CartItemDto
                 {
@@ -845,7 +847,7 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
             {
                 CartId = cartId,
                 ItemCount = cart.CartItems.Sum(ci => ci.Quantity),
-                TotalAmount = cart.CartItems.Sum(ci => GetEffectiveUnitPrice(ci.Product, ci.ProductAttributeCombination) * ci.Quantity),
+                TotalAmount = cart.CartItems.Sum(ci => GetEffectiveUnitPrice(ci) * ci.Quantity),
                 IsEmpty = !cart.CartItems.Any(),
                 LastModified = cart.LastModifiedAt,
                 HasOutOfStockItems = cart.CartItems.Any(ci => ci.Product.Quantity < ci.Quantity)

@@ -81,6 +81,6 @@ public static class OrderAttributeMappings
         PaymentStatusId = source.PaymentStatusId, PaymentReference = source.PaymentReference,
         ShippingMethodId = source.ShippingMethodId ?? 0, ShippingMethodName = source.ShippingMethod?.Name,
         OrderStatusId = source.OrderStatusId, ShippingAddress = source.ShippingAddress.ToDto(), BillingAddress = source.BillingAddress.ToDto(),
-        OrdersItems = source.OrdersItems?.Select(item => new OrderItemDto { ProductId = item.ProductId, ProductName = item.ProductName, ProductImageUrl = item.ProductImageUrl ?? string.Empty, Quantity = item.Quantity, UnitPrice = item.Price, ListUnitPrice = item.ListUnitPrice, ProductDiscountTotal = item.ProductDiscountTotal, VariantSnapshot = item.VariantSnapshot }).ToList() ?? new()
+        OrdersItems = source.OrdersItems?.Select(item => new OrderItemDto { ProductId = item.ProductId, ProductName = item.ProductName, ProductImageUrl = item.ProductImageUrl ?? string.Empty, Quantity = item.Quantity, UnitPrice = item.Price, ListUnitPrice = item.ListUnitPrice, ProductDiscountTotal = item.ProductDiscountTotal, VariantSnapshot = item.VariantSnapshot, ProductCampaignPackageId = item.ProductCampaignPackageId, CampaignSnapshotJson = item.CampaignSnapshotJson }).ToList() ?? new()
     };
 }

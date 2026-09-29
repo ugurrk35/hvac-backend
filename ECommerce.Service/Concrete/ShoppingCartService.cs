@@ -49,9 +49,9 @@ namespace ECommerce.Service.Concrete
 
             if (cart == null) return null;
 
-            decimal GetUnitPrice(CartItem item) => item.Product == null
+            decimal GetUnitPrice(CartItem item) => item.UnitPriceSnapshot ?? (item.Product == null
                 ? 0m
-                : _priceQuoteService.GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination);
+                : _priceQuoteService.GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination));
 
             return new ShoppingCartDto
             {
@@ -328,6 +328,8 @@ namespace ECommerce.Service.Concrete
         var currentItem = cartItems.FirstOrDefault(x =>
             x.ProductId == item.ProductId &&
             x.ProductAttributeCombinationId == item.ProductAttributeCombinationId &&
+            x.ProductCampaignPackageId == item.ProductCampaignPackageId &&
+            x.UnitPriceSnapshot == item.UnitPriceSnapshot &&
             string.Equals(x.PersonalizationText ?? string.Empty, item.PersonalizationText ?? string.Empty, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(BuildAttributeSelectionFingerprint(x.AttributeSelections), incomingAttributeFingerprint, StringComparison.Ordinal));
 

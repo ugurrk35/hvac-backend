@@ -147,6 +147,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //        builder.Configuration.GetConnectionString("DefaultConnection"),
 //        b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ProductCampaignQuoteService>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserIdentityRepository, UserIdentityRepository>();
 builder.Services.AddScoped(typeof(IIdentityRepository<>), typeof(IdentityRepository<>));
@@ -481,6 +482,8 @@ var uploadPath = Path.Combine(
 
 Directory.CreateDirectory(uploadPath);
 
+// Serves campaign device photos from wwwroot/uploads/campaigns.
+app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(uploadPath),

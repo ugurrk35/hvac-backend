@@ -16,5 +16,7 @@ namespace ECommerce.Service.Dtos.OrderDtos
         public decimal ListUnitPrice { get; set; }
         public decimal ProductDiscountTotal { get; set; }
         public string? VariantSnapshot { get; set; }
+        public int? ProductCampaignPackageId { get; set; }
+        public string? CampaignSnapshotJson { get; set; }
     }
 }

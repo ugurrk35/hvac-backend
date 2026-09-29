@@ -3,6 +3,7 @@ using System;
 using ECommerce.Repository.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929202741_AddProductCampaignExperience")]
+    partial class AddProductCampaignExperience
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1954,9 +1957,6 @@ namespace ECommerce.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CampaignSnapshotJson")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1989,9 +1989,6 @@ namespace ECommerce.Repository.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<int?>("ProductAttributeCombinationId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ProductCampaignPackageId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("ProductDiscountTotal")

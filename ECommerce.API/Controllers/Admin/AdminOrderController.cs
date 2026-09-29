@@ -304,6 +304,8 @@ namespace ECommerce.API.Controllers.Admin
                         ListUnitPrice = item.ListUnitPrice,
                         ProductDiscountTotal = item.ProductDiscountTotal,
                         VariantSnapshot = item.VariantSnapshot,
+                        ProductCampaignPackageId = item.ProductCampaignPackageId,
+                        CampaignSnapshotJson = item.CampaignSnapshotJson,
                         ProductImageUrl = item.ProductImageUrl ?? item.Product?.ProductImages
                             ?.OrderBy(image => image.SortOrder)
                             .Select(image => image.Image?.Url)

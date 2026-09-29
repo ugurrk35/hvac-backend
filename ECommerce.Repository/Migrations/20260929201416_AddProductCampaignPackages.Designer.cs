@@ -3,6 +3,7 @@ using System;
 using ECommerce.Repository.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929201416_AddProductCampaignPackages")]
+    partial class AddProductCampaignPackages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1954,9 +1957,6 @@ namespace ECommerce.Repository.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CampaignSnapshotJson")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1989,9 +1989,6 @@ namespace ECommerce.Repository.Migrations
                         .HasColumnType("numeric");
 
                     b.Property<int?>("ProductAttributeCombinationId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ProductCampaignPackageId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("ProductDiscountTotal")
@@ -2686,58 +2683,6 @@ namespace ECommerce.Repository.Migrations
                     b.ToTable("ProductAttributeValues");
                 });
 
-            modelBuilder.Entity("ECommerce.Domain.Entity.ProductCampaignEvent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MetadataJson")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("ProductCampaignPackageId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("VisitorId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductCampaignPackageId", "EventType", "CreatedAt");
-
-                    b.ToTable("ProductCampaignEvents");
-                });
-
             modelBuilder.Entity("ECommerce.Domain.Entity.ProductCampaignLocationRule", b =>
                 {
                     b.Property<int>("Id")
@@ -2931,9 +2876,6 @@ namespace ECommerce.Repository.Migrations
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("RequiresExistingDevicePhoto")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");

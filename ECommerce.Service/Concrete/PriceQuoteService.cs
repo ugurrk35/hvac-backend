@@ -47,8 +47,8 @@ namespace ECommerce.Service.Concrete
 
                 var hasVariantPrice = item.ProductAttributeCombination is { Price: > 0 } combination &&
                     combination.ProductId == item.ProductId;
-                var listUnitPrice = hasVariantPrice ? item.ProductAttributeCombination!.Price : item.Product.BasePrice;
-                var effectiveUnitPrice = GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination);
+                var listUnitPrice = item.UnitPriceSnapshot ?? (hasVariantPrice ? item.ProductAttributeCombination!.Price : item.Product.BasePrice);
+                var effectiveUnitPrice = item.UnitPriceSnapshot ?? GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination);
                 var listLineTotal = listUnitPrice * item.Quantity;
                 var lineTotal = effectiveUnitPrice * item.Quantity;
 
@@ -179,7 +179,7 @@ namespace ECommerce.Service.Concrete
         {
             if (!buyQuantity.HasValue || !payQuantity.HasValue || buyQuantity.Value <= payQuantity.Value || payQuantity.Value < 0) return 0m;
             var totalQuantity = items.Sum(item => item.Quantity); var freeItemCount = totalQuantity / buyQuantity.Value * (buyQuantity.Value - payQuantity.Value);
-            return items.OrderBy(item => GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination)).SelectMany(item => Enumerable.Repeat(GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination), item.Quantity)).Take(freeItemCount).Sum();
+            return items.OrderBy(item => item.UnitPriceSnapshot ?? GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination)).SelectMany(item => Enumerable.Repeat(item.UnitPriceSnapshot ?? GetEffectiveUnitPrice(item.Product, item.ProductAttributeCombination), item.Quantity)).Take(freeItemCount).Sum();
         }
 
         private decimal CalculateBundleDiscount(ICollection<CartItem> cartItems, string? bundleProductIds, decimal? bundlePrice)
@@ -187,7 +187,7 @@ namespace ECommerce.Service.Concrete
             if (string.IsNullOrWhiteSpace(bundleProductIds) || !bundlePrice.HasValue || bundlePrice < 0) return 0m;
             var productIds = bundleProductIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(value => int.TryParse(value.Trim(), out var id) ? id : 0).Where(id => id > 0).Distinct().ToList();
             if (productIds.Count < 2) return 0m;
-            var bundleItems = cartItems.Where(item => productIds.Contains(item.ProductId)).GroupBy(item => item.ProductId).Select(group => new { Quantity = group.Sum(item => item.Quantity), UnitPrice = GetEffectiveUnitPrice(group.First().Product, group.First().ProductAttributeCombination) }).ToList();
+            var bundleItems = cartItems.Where(item => productIds.Contains(item.ProductId)).GroupBy(item => item.ProductId).Select(group => new { Quantity = group.Sum(item => item.Quantity), UnitPrice = group.First().UnitPriceSnapshot ?? GetEffectiveUnitPrice(group.First().Product, group.First().ProductAttributeCombination) }).ToList();
             if (bundleItems.Count != productIds.Count) return 0m;
             var bundleCount = bundleItems.Min(item => item.Quantity);
             var regularBundlePrice = bundleItems.Sum(item => item.UnitPrice);
