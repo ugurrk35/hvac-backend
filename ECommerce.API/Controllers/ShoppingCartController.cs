@@ -352,8 +352,7 @@ namespace ECommerce.API.Controllers
                 if ((request.PhotoUrls ?? []).Any(url => !System.IO.File.Exists(Path.Combine(campaignPhotoDirectory, Path.GetFileName(url))))) return BadRequest(BaseResponse.CreateFailure("Yüklenen kampanya fotoğrafı bulunamadı."));
                 var package = await _campaignQuotes.GetActivePackageByIdAsync(request.PackageId, cancellationToken);
                 if (package?.RequiresExistingDevicePhoto == true && !(request.PhotoUrls?.Any() ?? false)) return BadRequest(BaseResponse.CreateFailure("Bu kampanya için mevcut cihaz fotoğrafı zorunludur."));
-                var quote = await _campaignQuotes.QuoteAsync(request.PackageId, new ProductCampaignQuoteRequest(request.City, request.District, request.OptionIds), cancellationToken);
-                if (quote.ProductId != request.ProductId) return BadRequest(BaseResponse.CreateFailure("Kampanya paketi seçilen ürüne ait değil."));
+                var quote = await _campaignQuotes.QuoteAsync(request.PackageId, new ProductCampaignQuoteRequest(request.ProductId, request.City, request.District, request.OptionIds), cancellationToken);
                 var snapshot = JsonSerializer.Serialize(new
                 {
                     quote.PackageId, quote.Title, quote.StartingPrice, quote.City, quote.District,

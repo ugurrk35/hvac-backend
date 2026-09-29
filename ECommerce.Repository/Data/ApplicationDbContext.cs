@@ -304,8 +304,7 @@ namespace ECommerce.Repository.Data
                 entity.Property(item => item.Title).HasMaxLength(200).IsRequired();
                 entity.Property(item => item.Description).HasMaxLength(1000);
                 entity.Property(item => item.StartingPrice).HasPrecision(18, 2);
-                entity.HasIndex(item => new { item.ProductId, item.IsDeleted });
-                entity.HasOne(item => item.Product).WithMany().HasForeignKey(item => item.ProductId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(item => new { item.IsDeleted, item.IsActive, item.SortOrder });
             });
             builder.Entity<ProductCampaignEvent>(entity =>
             {

@@ -15,6 +15,9 @@ namespace ECommerce.Domain.Entity
         public string SKU { get; set; }                              // Stok kodu
         public string ShortDescription { get; set; }                 // Kısa açıklama (meta için)
         public string Description { get; set; }                      // Detaylı açıklama (HTML içerebilir)
+        public string TechnicalDetails { get; set; } = string.Empty; // Ürüne özel teknik bilgi sekmesi
+        public string DeliveryInstallationDetails { get; set; } = string.Empty; // Ürüne özel teslimat ve montaj bilgisi
+        public string DocumentsDetails { get; set; } = string.Empty; // Ürüne özel doküman açıklaması
         public decimal BasePrice { get; set; }                       // Fiyat
         public decimal? DiscountPrice { get; set; }                  // İndirimli fiyat
         public bool IsPublished { get; set; }                        // Yayında mı?
@@ -33,6 +36,8 @@ namespace ECommerce.Domain.Entity
 
         // Yapılandırılmış Veri Desteği (JSON-LD vs. için)
         public string Brand { get; set; }                            // Marka
+        public string BrandLogoUrl { get; set; } = string.Empty;     // Ürün kartında gösterilecek marka logosu
+        public string CardHighlightsJson { get; set; } = "[]";       // Ürün kartındaki kısa fayda listesi
         public string GTIN { get; set; }                             // Global Trade Item Number
         public string MPN { get; set; }                              // Manufacturer Part Number
 
@@ -42,6 +47,7 @@ namespace ECommerce.Domain.Entity
 
         // Kategori İlişkisi
         public int CategoryId { get; set; }
+        public string AdditionalCategoryIdsJson { get; set; } = "[]"; // İkincil vitrin kategorileri
         public Category Category { get; set; }
 
         // Siparişler ve Sepet

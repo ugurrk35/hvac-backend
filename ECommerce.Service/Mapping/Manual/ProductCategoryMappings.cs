@@ -3,6 +3,7 @@ using ECommerce.Service.Dtos.CategoryDtos;
 using ECommerce.Service.Dtos.ImageDtos;
 using ECommerce.Service.Dtos.ProductDtos;
 using ECommerce.Service.Dtos.ProductTagDtos;
+using System.Text.Json;
 
 namespace ECommerce.Service.Mapping.Manual;
 
@@ -52,7 +53,7 @@ public static class ProductCategoryMappings
         {
             Id = source.Id, Name = source.Name, Slug = source.Slug, SKU = source.SKU,
             ShortDescription = source.ShortDescription, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
-            IsPublished = source.IsPublished, Quantity = source.Quantity, Brand = source.Brand, CreatedAt = source.CreatedAt,
+            IsPublished = source.IsPublished, Quantity = source.Quantity, Brand = source.Brand, BrandLogoUrl = source.BrandLogoUrl, CardHighlights = DeserializeHighlights(source.CardHighlightsJson), CreatedAt = source.CreatedAt,
             CategoryId = source.CategoryId, CategoryName = source.Category?.Name,
             MainImageUrl = source.ProductImages?.OrderBy(image => image.SortOrder).Select(image => image.Image?.Url)
                 .FirstOrDefault(url => !string.IsNullOrWhiteSpace(url)),
@@ -69,13 +70,14 @@ public static class ProductCategoryMappings
     public static ProductDto ToDto(this Product source) => new()
     {
         Id = source.Id, Name = source.Name, Slug = source.Slug, SKU = source.SKU, ShortDescription = source.ShortDescription,
-        Description = source.Description, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
+        Description = source.Description, TechnicalDetails = source.TechnicalDetails, DeliveryInstallationDetails = source.DeliveryInstallationDetails, DocumentsDetails = source.DocumentsDetails, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
         IsPublished = source.IsPublished, Quantity = source.Quantity, MetaTitle = source.MetaTitle,
         MetaDescription = source.MetaDescription, MetaKeywords = source.MetaKeywords, CanonicalUrl = source.CanonicalUrl,
         OgTitle = source.OgTitle, OgDescription = source.OgDescription, OgImage = source.OgImage,
-        TwitterCardType = source.TwitterCardType, Brand = source.Brand, GTIN = source.GTIN, MPN = source.MPN,
+        TwitterCardType = source.TwitterCardType, Brand = source.Brand, BrandLogoUrl = source.BrandLogoUrl, CardHighlights = DeserializeHighlights(source.CardHighlightsJson), GTIN = source.GTIN, MPN = source.MPN,
         CreatedAt = source.CreatedAt, CreatedBy = source.CreatedBy, LastModifiedAt = source.LastModifiedAt,
         LastModifiedBy = source.LastModifiedBy, IsDeleted = source.IsDeleted, CategoryId = source.CategoryId,
+        AdditionalCategoryIds = DeserializeCategoryIds(source.AdditionalCategoryIdsJson),
         CategoryName = source.Category?.Name,
         ProductImages = source.ProductImages?.Select(image => image.ToDto()).ToList() ?? new(),
         ProductTags = source.ProductProductTags?.Where(tag => tag.ProductTag != null).Select(tag => tag.ProductTag.ToDto()).ToList() ?? new(),
@@ -85,23 +87,23 @@ public static class ProductCategoryMappings
     public static Product ToEntity(this CreateProductDto source) => new()
     {
         Name = source.Name, Slug = source.Slug, SKU = source.SKU, ShortDescription = source.ShortDescription,
-        Description = source.Description, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
+        Description = source.Description, TechnicalDetails = source.TechnicalDetails, DeliveryInstallationDetails = source.DeliveryInstallationDetails, DocumentsDetails = source.DocumentsDetails, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
         IsPublished = source.IsPublished, Quantity = source.Quantity, MetaTitle = source.MetaTitle,
         MetaDescription = source.MetaDescription, MetaKeywords = source.MetaKeywords, CanonicalUrl = source.CanonicalUrl,
         OgTitle = source.OgTitle, OgDescription = source.OgDescription, OgImage = source.OgImage,
-        TwitterCardType = source.TwitterCardType, Brand = source.Brand, GTIN = source.GTIN, MPN = source.MPN,
-        CategoryId = source.CategoryId, IsActive = true, IsDeleted = false
+        TwitterCardType = source.TwitterCardType, Brand = source.Brand, BrandLogoUrl = source.BrandLogoUrl, CardHighlightsJson = SerializeHighlights(source.CardHighlights), GTIN = source.GTIN, MPN = source.MPN,
+        CategoryId = source.CategoryId, AdditionalCategoryIdsJson = SerializeCategoryIds(source.AdditionalCategoryIds, source.CategoryId), IsActive = true, IsDeleted = false
     };
 
     public static void ApplyTo(this UpdateProductDto source, Product target)
     {
         target.Name = source.Name; target.Slug = source.Slug; target.SKU = source.SKU; target.ShortDescription = source.ShortDescription;
-        target.Description = source.Description; target.BasePrice = source.BasePrice; target.DiscountPrice = source.DiscountPrice;
+        target.Description = source.Description; target.TechnicalDetails = source.TechnicalDetails; target.DeliveryInstallationDetails = source.DeliveryInstallationDetails; target.DocumentsDetails = source.DocumentsDetails; target.BasePrice = source.BasePrice; target.DiscountPrice = source.DiscountPrice;
         target.IsPublished = source.IsPublished; target.Quantity = source.Quantity; target.MetaTitle = source.MetaTitle;
         target.MetaDescription = source.MetaDescription; target.MetaKeywords = source.MetaKeywords; target.CanonicalUrl = source.CanonicalUrl;
         target.OgTitle = source.OgTitle; target.OgDescription = source.OgDescription; target.OgImage = source.OgImage;
-        target.TwitterCardType = source.TwitterCardType; target.Brand = source.Brand; target.GTIN = source.GTIN; target.MPN = source.MPN;
-        target.CategoryId = source.CategoryId; target.LastModifiedAt = DateTime.UtcNow;
+        target.TwitterCardType = source.TwitterCardType; target.Brand = source.Brand; target.BrandLogoUrl = source.BrandLogoUrl; target.CardHighlightsJson = SerializeHighlights(source.CardHighlights); target.GTIN = source.GTIN; target.MPN = source.MPN;
+        target.CategoryId = source.CategoryId; target.AdditionalCategoryIdsJson = SerializeCategoryIds(source.AdditionalCategoryIds, source.CategoryId); target.LastModifiedAt = DateTime.UtcNow;
     }
 
     public static ProductImage ToEntity(this CreateProductImageDto source) => new() { ImageId = source.ImageId, SortOrder = source.SortOrder };
@@ -132,4 +134,20 @@ public static class ProductCategoryMappings
             PersonalizationText = value.PersonalizationText ?? string.Empty
         }).ToList() ?? new()
     };
+
+    private static string SerializeCategoryIds(IEnumerable<int>? ids, int primaryId) => JsonSerializer.Serialize((ids ?? []).Where(id => id > 0 && id != primaryId).Distinct().ToList());
+    private static List<int> DeserializeCategoryIds(string? value)
+    {
+        try { return JsonSerializer.Deserialize<List<int>>(value ?? "[]")?.Where(id => id > 0).Distinct().ToList() ?? new(); }
+        catch { return new(); }
+    }
+
+    private static string SerializeHighlights(IEnumerable<string>? values) =>
+        JsonSerializer.Serialize((values ?? []).Select(value => value?.Trim()).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().Take(3).ToList());
+
+    private static List<string> DeserializeHighlights(string? value)
+    {
+        try { return JsonSerializer.Deserialize<List<string>>(value ?? "[]")?.Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).Take(3).ToList() ?? new(); }
+        catch { return new(); }
+    }
 }

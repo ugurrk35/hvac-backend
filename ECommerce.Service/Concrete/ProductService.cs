@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ECommerce.Service.Concrete
@@ -192,12 +193,23 @@ namespace ECommerce.Service.Concrete
         {
             // This would typically use specifications or a more complex query builder
             // For now, using the existing filtered method and implementing pagination logic
+            // Secondary storefront categories are stored on the product as a JSON id list.
+            // Fetch without a category restriction first, then include both the primary and
+            // secondary category memberships in the same catalogue result.
             var allFilteredProducts = await GetFilteredProductsAsync(
-                filter.CategoryId,
+                null,
                 filter.MinPrice,
                 filter.MaxPrice,
                 filter.InStock,
                 filter.SearchTerm);
+
+            if (filter.CategoryId.HasValue)
+            {
+                allFilteredProducts = allFilteredProducts
+                    .Where(product => product.CategoryId == filter.CategoryId.Value ||
+                        HasSecondaryCategory(product, filter.CategoryId.Value))
+                    .ToList();
+            }
 
             // Apply additional filters
             var query = allFilteredProducts.AsQueryable();
@@ -265,6 +277,19 @@ namespace ECommerce.Service.Concrete
                 .ToList();
 
             return (products, totalCount);
+        }
+
+        private static bool HasSecondaryCategory(Product product, int categoryId)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<List<int>>(product.AdditionalCategoryIdsJson ?? "[]")?
+                    .Contains(categoryId) == true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
         }
 
         private static bool HasAttributeValue(Product product, string attributeName, string expectedValue) =>

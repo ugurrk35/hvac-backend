@@ -13,27 +13,26 @@ public sealed class ProductCampaignQuoteService(ApplicationDbContext db)
                 .ThenInclude(group => group.Options.Where(option => option.IsActive && !option.IsDeleted))
             .FirstOrDefaultAsync(item => item.Id == packageId && item.IsActive && !item.IsDeleted, cancellationToken);
 
-    public async Task<ProductCampaignPackage?> GetActivePackageAsync(int productId, CancellationToken cancellationToken = default) =>
+    public async Task<IReadOnlyList<ProductCampaignPackage>> GetActivePackagesAsync(CancellationToken cancellationToken = default) =>
         await db.ProductCampaignPackages
             .Include(item => item.LocationRules.Where(rule => rule.IsActive && !rule.IsDeleted))
             .Include(item => item.LookupGroups.Where(group => group.IsActive && !group.IsDeleted))
                 .ThenInclude(group => group.Options.Where(option => option.IsActive && !option.IsDeleted))
-            .Where(item => item.ProductId == productId && item.IsActive && !item.IsDeleted)
+            .Where(item => item.IsActive && !item.IsDeleted)
             .OrderBy(item => item.SortOrder).ThenBy(item => item.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
 
     public async Task<ProductCampaignQuoteResult> QuoteAsync(int packageId, ProductCampaignQuoteRequest request, CancellationToken cancellationToken = default)
     {
         var package = await db.ProductCampaignPackages
-            .Include(item => item.Product)
             .Include(item => item.LocationRules.Where(rule => rule.IsActive && !rule.IsDeleted))
             .Include(item => item.LookupGroups.Where(group => group.IsActive && !group.IsDeleted))
                 .ThenInclude(group => group.Options.Where(option => option.IsActive && !option.IsDeleted))
             .FirstOrDefaultAsync(item => item.Id == packageId && item.IsActive && !item.IsDeleted, cancellationToken)
             ?? throw new ArgumentException("Kampanya paketi bulunamadı.");
 
-        if (!package.Product.IsActive || !package.Product.IsPublished || package.Product.IsDeleted)
-            throw new ArgumentException("Bu ürün şu anda kampanyalı satın almaya uygun değil.");
+        var product = await db.Products.AsNoTracking().FirstOrDefaultAsync(item => item.Id == request.ProductId && item.IsActive && item.IsPublished && !item.IsDeleted, cancellationToken)
+            ?? throw new ArgumentException("Bu ürün şu anda kampanyalı satın almaya uygun değil.");
 
         var city = request.City?.Trim();
         if (string.IsNullOrWhiteSpace(city)) throw new ArgumentException("Kampanyalı satın alma için şehir seçmelisiniz.");
@@ -61,12 +60,12 @@ public sealed class ProductCampaignQuoteService(ApplicationDbContext db)
             if (selected != null) selections.Add(new ProductCampaignQuoteSelection(group.Id, group.Code, group.Label, selected.Id, selected.Label, selected.PriceAdjustment));
         }
 
-        var total = package.StartingPrice + location.PriceAdjustment + selections.Sum(item => item.PriceAdjustment);
+        var total = (product.DiscountPrice ?? product.BasePrice) + package.StartingPrice + location.PriceAdjustment + selections.Sum(item => item.PriceAdjustment);
         if (total < 0) throw new ArgumentException("Kampanya toplamı geçersiz.");
-        return new ProductCampaignQuoteResult(package.Id, package.ProductId, package.Title, package.StartingPrice, city, district, location.PriceAdjustment, selections, total);
+        return new ProductCampaignQuoteResult(package.Id, product.Id, package.Title, package.StartingPrice, city, district, location.PriceAdjustment, selections, total);
     }
 }
 
-public sealed record ProductCampaignQuoteRequest(string? City, string? District, IReadOnlyList<int>? OptionIds);
+public sealed record ProductCampaignQuoteRequest(int ProductId, string? City, string? District, IReadOnlyList<int>? OptionIds);
 public sealed record ProductCampaignQuoteSelection(int GroupId, string Code, string GroupLabel, int OptionId, string OptionLabel, decimal PriceAdjustment);
 public sealed record ProductCampaignQuoteResult(int PackageId, int ProductId, string Title, decimal StartingPrice, string City, string? District, decimal LocationAdjustment, IReadOnlyList<ProductCampaignQuoteSelection> Selections, decimal Total);

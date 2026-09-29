@@ -15,6 +15,9 @@ namespace ECommerce.Service.Dtos.ProductDtos
         public string SKU { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
+        public string TechnicalDetails { get; set; }
+        public string DeliveryInstallationDetails { get; set; }
+        public string DocumentsDetails { get; set; }
         public decimal BasePrice { get; set; }
         public decimal? DiscountPrice { get; set; }
         public decimal EffectivePrice => DiscountPrice ?? BasePrice;
@@ -36,6 +39,8 @@ namespace ECommerce.Service.Dtos.ProductDtos
 
         // Product Details
         public string Brand { get; set; }
+        public string BrandLogoUrl { get; set; }
+        public List<string> CardHighlights { get; set; } = new();
         public string GTIN { get; set; }
         public string MPN { get; set; }
 
@@ -48,6 +53,7 @@ namespace ECommerce.Service.Dtos.ProductDtos
 
         // Related Data
         public int CategoryId { get; set; }
+        public List<int> AdditionalCategoryIds { get; set; } = new();
         public string CategoryName { get; set; }
         public List<ProductImageDto> ProductImages { get; set; } = new();
         public List<ProductTagDto> ProductTags { get; set; } = new();

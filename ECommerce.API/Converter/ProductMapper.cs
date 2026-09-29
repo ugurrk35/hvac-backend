@@ -3,6 +3,7 @@ using ECommerce.Domain.Entity;
 using ECommerce.Service.Dtos.ProductDtos;
 using ECommerce.Service.Dtos.ProductTagDtos;
 using System.Linq;
+using System.Text.Json;
 
 namespace ECommerce.API.Converter
 {
@@ -19,13 +20,21 @@ namespace ECommerce.API.Converter
                 Slug = product.Slug,
                 ShortDescription = product.ShortDescription,
                 Description = product.Description,
+                TechnicalDetails = product.TechnicalDetails,
+                DeliveryInstallationDetails = product.DeliveryInstallationDetails,
+                DocumentsDetails = product.DocumentsDetails,
 
                 BasePrice = product.BasePrice,
                 DiscountPrice = product.DiscountPrice ?? 0,
                 Quantity = product.Quantity,
+                InStock = product.Quantity > 0 || (product.ProductAttributeCombination?.Any(item => !item.IsDeleted && item.Quantity > 0) ?? false),
+                EffectivePrice = product.DiscountPrice ?? product.BasePrice,
 
                 CategoryId = product.CategoryId,
+                AdditionalCategoryIds = ReadCategoryIds(product.AdditionalCategoryIdsJson),
                 CategoryName = product.Category?.Name,
+                BrandLogoUrl = product.BrandLogoUrl,
+                CardHighlights = ReadHighlights(product.CardHighlightsJson),
 
                 ProductImages = product.ProductImages?.Select(pi => new ProductImageDetailDto
                 {
@@ -85,6 +94,18 @@ namespace ECommerce.API.Converter
                 ReviewCount = product.Reviews?.Count(r => r.IsApproved) ?? 0,
                 QuestionCount = 0
             };
+        }
+
+        private static List<int> ReadCategoryIds(string? value)
+        {
+            try { return JsonSerializer.Deserialize<List<int>>(value ?? "[]")?.Where(id => id > 0).Distinct().ToList() ?? new(); }
+            catch { return new(); }
+        }
+
+        private static List<string> ReadHighlights(string? value)
+        {
+            try { return JsonSerializer.Deserialize<List<string>>(value ?? "[]")?.Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).Take(3).ToList() ?? new(); }
+            catch { return new(); }
         }
     }
 }

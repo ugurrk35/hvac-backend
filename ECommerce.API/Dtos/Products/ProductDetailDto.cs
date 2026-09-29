@@ -10,6 +10,9 @@ namespace ECommerce.API.Dtos.Products
         public string Slug { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
+        public string TechnicalDetails { get; set; }
+        public string DeliveryInstallationDetails { get; set; }
+        public string DocumentsDetails { get; set; }
 
         public decimal BasePrice { get; set; }
         public decimal DiscountPrice { get; set; }
@@ -18,7 +21,10 @@ namespace ECommerce.API.Dtos.Products
         public int Quantity { get; set; }
 
         public int CategoryId { get; set; }
+        public List<int> AdditionalCategoryIds { get; set; } = new();
         public string CategoryName { get; set; }
+        public string BrandLogoUrl { get; set; }
+        public List<string> CardHighlights { get; set; } = new();
         public List<ProductImageDetailDto> ProductImages { get; set; }
         public List<ProductTagDetailDto> ProductTags { get; set; }
         public List<AttributeCombinationDetailDto> AttributeCombinations { get; set; }

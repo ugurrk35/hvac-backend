@@ -292,9 +292,6 @@ namespace ECommerce.Repository.Migrations
                     b.Property<DateTime?>("NotifiedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId", "Email")
@@ -2396,7 +2393,19 @@ namespace ECommerce.Repository.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("BrandLogoUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AdditionalCategoryIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("CanonicalUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CardHighlightsJson")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -2411,6 +2420,14 @@ namespace ECommerce.Repository.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DeliveryInstallationDetails")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocumentsDetails")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -2489,6 +2506,10 @@ namespace ECommerce.Repository.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("TwitterCardType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TechnicalDetails")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -2949,7 +2970,7 @@ namespace ECommerce.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId", "IsDeleted");
+                    b.HasIndex("IsDeleted", "IsActive", "SortOrder");
 
                     b.ToTable("ProductCampaignPackages");
                 });
@@ -4441,17 +4462,6 @@ namespace ECommerce.Repository.Migrations
                         .IsRequired();
 
                     b.Navigation("ProductCampaignLookupGroup");
-                });
-
-            modelBuilder.Entity("ECommerce.Domain.Entity.ProductCampaignPackage", b =>
-                {
-                    b.HasOne("ECommerce.Domain.Entity.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Entity.ProductImage", b =>

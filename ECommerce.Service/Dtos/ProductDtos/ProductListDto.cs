@@ -20,6 +20,8 @@ namespace ECommerce.Service.Dtos.ProductDtos
         public int Quantity { get; set; }
         public bool InStock => Quantity > 0;
         public string Brand { get; set; }
+        public string BrandLogoUrl { get; set; }
+        public List<string> CardHighlights { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }

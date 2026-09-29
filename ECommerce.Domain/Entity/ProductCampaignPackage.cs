@@ -1,10 +1,8 @@
 namespace ECommerce.Domain.Entity;
 
-/// <summary>Montaj ve ek hizmet seçimleri olan, ürüne bağlı kampanyalı satın alma paketi.</summary>
+/// <summary>Her üründe seçilebilen, şehir ve hizmet farklarını içeren genel montaj paketi.</summary>
 public class ProductCampaignPackage : AuditableEntity
 {
-    public int ProductId { get; set; }
-    public Product Product { get; set; } = null!;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal StartingPrice { get; set; }

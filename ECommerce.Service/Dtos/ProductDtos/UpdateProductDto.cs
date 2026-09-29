@@ -29,6 +29,9 @@ namespace ECommerce.Service.Dtos.ProductDtos
         public string ShortDescription { get; set; }
 
         public string Description { get; set; }
+        public string TechnicalDetails { get; set; }
+        public string DeliveryInstallationDetails { get; set; }
+        public string DocumentsDetails { get; set; }
 
         [Required]
         [Range(0.01, double.MaxValue)]
@@ -69,6 +72,8 @@ namespace ECommerce.Service.Dtos.ProductDtos
         // Product Details
         [StringLength(100)]
         public string Brand { get; set; }
+        public string BrandLogoUrl { get; set; }
+        public List<string> CardHighlights { get; set; } = new();
 
         [StringLength(50)]
         public string GTIN { get; set; }
@@ -78,6 +83,7 @@ namespace ECommerce.Service.Dtos.ProductDtos
 
         [Required]
         public int CategoryId { get; set; }
+        public List<int> AdditionalCategoryIds { get; set; } = new();
 
         // Related Data
         public List<int> ProductTagIds { get; set; } = new();
