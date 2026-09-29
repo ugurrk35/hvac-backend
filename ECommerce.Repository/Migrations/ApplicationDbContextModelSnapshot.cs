@@ -292,6 +292,9 @@ namespace ECommerce.Repository.Migrations
                     b.Property<DateTime?>("NotifiedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId", "Email")
