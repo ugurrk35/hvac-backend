@@ -74,7 +74,9 @@ public sealed class ProductCampaignQuoteService(ApplicationDbContext db)
             if (selected != null) selections.Add(new ProductCampaignQuoteSelection(group.Id, group.Code, group.Label, selected.Id, selected.Label, selected.PriceAdjustment));
         }
 
-        var total = (product.DiscountPrice ?? product.BasePrice) + package.StartingPrice + location.PriceAdjustment + selections.Sum(item => item.PriceAdjustment);
+        // StartingPrice is the campaign's product-inclusive base price. Adding the
+        // product price again here doubles the advertised campaign amount.
+        var total = package.StartingPrice + location.PriceAdjustment + selections.Sum(item => item.PriceAdjustment);
         if (total < 0) throw new ArgumentException("Kampanya toplamı geçersiz.");
         return new ProductCampaignQuoteResult(package.Id, product.Id, package.Title, package.StartingPrice, city, district, location.PriceAdjustment, selections, total);
     }
