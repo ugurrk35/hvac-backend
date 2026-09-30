@@ -54,6 +54,7 @@ namespace ECommerce.Service.Dtos.ProductDtos
         // Related Data
         public int CategoryId { get; set; }
         public List<int> AdditionalCategoryIds { get; set; } = new();
+        public List<int> CampaignPackageIds { get; set; } = new();
         public string CategoryName { get; set; }
         public List<ProductImageDto> ProductImages { get; set; } = new();
         public List<ProductTagDto> ProductTags { get; set; } = new();

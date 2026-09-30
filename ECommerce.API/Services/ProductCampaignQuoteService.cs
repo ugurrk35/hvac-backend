@@ -1,6 +1,7 @@
 using ECommerce.Domain.Entity;
 using ECommerce.Repository.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace ECommerce.API.Services;
 
@@ -13,14 +14,23 @@ public sealed class ProductCampaignQuoteService(ApplicationDbContext db)
                 .ThenInclude(group => group.Options.Where(option => option.IsActive && !option.IsDeleted))
             .FirstOrDefaultAsync(item => item.Id == packageId && item.IsActive && !item.IsDeleted, cancellationToken);
 
-    public async Task<IReadOnlyList<ProductCampaignPackage>> GetActivePackagesAsync(CancellationToken cancellationToken = default) =>
-        await db.ProductCampaignPackages
+    public async Task<IReadOnlyList<ProductCampaignPackage>> GetActivePackagesAsync(int? productId, CancellationToken cancellationToken = default)
+    {
+        if (!productId.HasValue || productId <= 0) return [];
+        var product = await db.Products.AsNoTracking().FirstOrDefaultAsync(item => item.Id == productId && item.IsActive && item.IsPublished && !item.IsDeleted, cancellationToken);
+        if (product == null) return [];
+        List<int> packageIds;
+        try { packageIds = JsonSerializer.Deserialize<List<int>>(product.CampaignPackageIdsJson ?? "[]") ?? []; }
+        catch (JsonException) { packageIds = []; }
+        if (packageIds.Count == 0) return [];
+        return await db.ProductCampaignPackages
             .Include(item => item.LocationRules.Where(rule => rule.IsActive && !rule.IsDeleted))
             .Include(item => item.LookupGroups.Where(group => group.IsActive && !group.IsDeleted))
                 .ThenInclude(group => group.Options.Where(option => option.IsActive && !option.IsDeleted))
-            .Where(item => item.IsActive && !item.IsDeleted)
+            .Where(item => packageIds.Contains(item.Id) && item.IsActive && !item.IsDeleted)
             .OrderBy(item => item.SortOrder).ThenBy(item => item.Id)
             .ToListAsync(cancellationToken);
+    }
 
     public async Task<ProductCampaignQuoteResult> QuoteAsync(int packageId, ProductCampaignQuoteRequest request, CancellationToken cancellationToken = default)
     {
@@ -33,6 +43,10 @@ public sealed class ProductCampaignQuoteService(ApplicationDbContext db)
 
         var product = await db.Products.AsNoTracking().FirstOrDefaultAsync(item => item.Id == request.ProductId && item.IsActive && item.IsPublished && !item.IsDeleted, cancellationToken)
             ?? throw new ArgumentException("Bu ürün şu anda kampanyalı satın almaya uygun değil.");
+        List<int> allowedPackageIds;
+        try { allowedPackageIds = JsonSerializer.Deserialize<List<int>>(product.CampaignPackageIdsJson ?? "[]") ?? []; }
+        catch (JsonException) { allowedPackageIds = []; }
+        if (!allowedPackageIds.Contains(packageId)) throw new ArgumentException("Bu montaj paketi seçili ürün için tanımlı değil.");
 
         var city = request.City?.Trim();
         if (string.IsNullOrWhiteSpace(city)) throw new ArgumentException("Kampanyalı satın alma için şehir seçmelisiniz.");

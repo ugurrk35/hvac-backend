@@ -78,6 +78,7 @@ namespace ECommerce.Service.Dtos.ProductDtos
         [Required]
         public int CategoryId { get; set; }
         public List<int> AdditionalCategoryIds { get; set; } = new();
+        public List<int> CampaignPackageIds { get; set; } = new();
 
         // Ana ürün fiyatı
         //public ProductPriceDto ProductPrice { get; set; }

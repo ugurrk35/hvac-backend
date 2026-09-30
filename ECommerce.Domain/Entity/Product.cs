@@ -48,6 +48,7 @@ namespace ECommerce.Domain.Entity
         // Kategori İlişkisi
         public int CategoryId { get; set; }
         public string AdditionalCategoryIdsJson { get; set; } = "[]"; // İkincil vitrin kategorileri
+        public string CampaignPackageIdsJson { get; set; } = "[]"; // Ürün sayfasında kullanılabilecek global montaj paketleri
         public Category Category { get; set; }
 
         // Siparişler ve Sepet

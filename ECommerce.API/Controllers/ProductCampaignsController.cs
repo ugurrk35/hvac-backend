@@ -9,9 +9,9 @@ namespace ECommerce.API.Controllers;
 public class ProductCampaignsController(ProductCampaignQuoteService campaignQuotes) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetPackages(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetPackages([FromQuery] int? productId, CancellationToken cancellationToken)
     {
-        var packages = await campaignQuotes.GetActivePackagesAsync(cancellationToken);
+        var packages = await campaignQuotes.GetActivePackagesAsync(productId, cancellationToken);
         return Ok(DataResponse<object>.CreateSuccess(packages.Select(package => new {
             package.Id, package.Title, package.Description, package.StartingPrice, package.RequiresExistingDevicePhoto,
             locations = package.LocationRules.OrderBy(item => item.SortOrder).ThenBy(item => item.City).Select(item => new { item.Id, item.City, item.District, item.PriceAdjustment }),

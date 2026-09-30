@@ -77,7 +77,7 @@ public static class ProductCategoryMappings
         TwitterCardType = source.TwitterCardType, Brand = source.Brand, BrandLogoUrl = source.BrandLogoUrl, CardHighlights = DeserializeHighlights(source.CardHighlightsJson), GTIN = source.GTIN, MPN = source.MPN,
         CreatedAt = source.CreatedAt, CreatedBy = source.CreatedBy, LastModifiedAt = source.LastModifiedAt,
         LastModifiedBy = source.LastModifiedBy, IsDeleted = source.IsDeleted, CategoryId = source.CategoryId,
-        AdditionalCategoryIds = DeserializeCategoryIds(source.AdditionalCategoryIdsJson),
+        AdditionalCategoryIds = DeserializeCategoryIds(source.AdditionalCategoryIdsJson), CampaignPackageIds = DeserializeCategoryIds(source.CampaignPackageIdsJson),
         CategoryName = source.Category?.Name,
         ProductImages = source.ProductImages?.Select(image => image.ToDto()).ToList() ?? new(),
         ProductTags = source.ProductProductTags?.Where(tag => tag.ProductTag != null).Select(tag => tag.ProductTag.ToDto()).ToList() ?? new(),
@@ -92,7 +92,7 @@ public static class ProductCategoryMappings
         MetaDescription = source.MetaDescription, MetaKeywords = source.MetaKeywords, CanonicalUrl = source.CanonicalUrl,
         OgTitle = source.OgTitle, OgDescription = source.OgDescription, OgImage = source.OgImage,
         TwitterCardType = source.TwitterCardType, Brand = source.Brand, BrandLogoUrl = source.BrandLogoUrl, CardHighlightsJson = SerializeHighlights(source.CardHighlights), GTIN = source.GTIN, MPN = source.MPN,
-        CategoryId = source.CategoryId, AdditionalCategoryIdsJson = SerializeCategoryIds(source.AdditionalCategoryIds, source.CategoryId), IsActive = true, IsDeleted = false
+        CategoryId = source.CategoryId, AdditionalCategoryIdsJson = SerializeCategoryIds(source.AdditionalCategoryIds, source.CategoryId), CampaignPackageIdsJson = SerializeCategoryIds(source.CampaignPackageIds, 0), IsActive = true, IsDeleted = false
     };
 
     public static void ApplyTo(this UpdateProductDto source, Product target)
@@ -103,7 +103,7 @@ public static class ProductCategoryMappings
         target.MetaDescription = source.MetaDescription; target.MetaKeywords = source.MetaKeywords; target.CanonicalUrl = source.CanonicalUrl;
         target.OgTitle = source.OgTitle; target.OgDescription = source.OgDescription; target.OgImage = source.OgImage;
         target.TwitterCardType = source.TwitterCardType; target.Brand = source.Brand; target.BrandLogoUrl = source.BrandLogoUrl; target.CardHighlightsJson = SerializeHighlights(source.CardHighlights); target.GTIN = source.GTIN; target.MPN = source.MPN;
-        target.CategoryId = source.CategoryId; target.AdditionalCategoryIdsJson = SerializeCategoryIds(source.AdditionalCategoryIds, source.CategoryId); target.LastModifiedAt = DateTime.UtcNow;
+        target.CategoryId = source.CategoryId; target.AdditionalCategoryIdsJson = SerializeCategoryIds(source.AdditionalCategoryIds, source.CategoryId); target.CampaignPackageIdsJson = SerializeCategoryIds(source.CampaignPackageIds, 0); target.LastModifiedAt = DateTime.UtcNow;
     }
 
     public static ProductImage ToEntity(this CreateProductImageDto source) => new() { ImageId = source.ImageId, SortOrder = source.SortOrder };
