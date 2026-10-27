@@ -483,12 +483,20 @@ var uploadPath = Path.Combine(
 
 Directory.CreateDirectory(uploadPath);
 
-// Serves campaign device photos from wwwroot/uploads/campaigns.
-app.UseStaticFiles();
+// Uploaded files use immutable, unique filenames. A long cache lifetime prevents
+// repeat visits from downloading the same product/brand assets again.
+var immutableStaticFiles = new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+        context.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable"
+};
+app.UseStaticFiles(immutableStaticFiles);
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(uploadPath),
-    RequestPath = "/api/uploads/images"
+    RequestPath = "/api/uploads/images",
+    OnPrepareResponse = context =>
+        context.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable"
 });
 
 
