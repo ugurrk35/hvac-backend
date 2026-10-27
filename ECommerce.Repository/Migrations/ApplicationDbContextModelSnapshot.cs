@@ -2396,6 +2396,9 @@ namespace ECommerce.Repository.Migrations
                     b.Property<decimal>("BasePrice")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal?>("CampaignStartingPrice")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Brand")
                         .IsRequired()
                         .HasColumnType("text");
