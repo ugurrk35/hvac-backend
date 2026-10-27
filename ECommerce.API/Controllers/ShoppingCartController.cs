@@ -357,7 +357,7 @@ namespace ECommerce.API.Controllers
                 {
                     quote.PackageId, quote.Title, quote.StartingPrice, quote.City, quote.District,
                     request.AddressLine, request.PreferredDate, photos = request.PhotoUrls, quote.LocationAdjustment, quote.Selections, quote.Total
-                });
+                }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
                 await _shoppingCartService.AddItemToCartAsync(cartId, new CartItem
                 {
                     ProductId = quote.ProductId,
