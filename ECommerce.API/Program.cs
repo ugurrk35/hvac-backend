@@ -314,6 +314,7 @@ using (var scope = app.Services.CreateScope())
     await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"ProductRelateds\" ADD COLUMN IF NOT EXISTS \"RecommendationType\" integer NOT NULL DEFAULT 0;");
     await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"ProductRelateds\" ADD COLUMN IF NOT EXISTS \"ShowOnProductPage\" boolean NOT NULL DEFAULT TRUE;");
     await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"ProductRelateds\" ADD COLUMN IF NOT EXISTS \"ShowInCart\" boolean NOT NULL DEFAULT TRUE;");
+    await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Products\" ADD COLUMN IF NOT EXISTS \"CampaignStartingPrice\" numeric;");
     // Checkout currently uses payment method ID 1 for the PayTR flow. Keep the
     // reference data self-healing so a fresh production database can accept payments.
     var paytrPaymentMethod = await db.PaymentMethods.SingleOrDefaultAsync(method => method.Id == 1);

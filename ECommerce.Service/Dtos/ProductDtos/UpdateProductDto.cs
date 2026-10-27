@@ -39,6 +39,7 @@ namespace ECommerce.Service.Dtos.ProductDtos
 
         [Range(0.01, double.MaxValue)]
         public decimal? DiscountPrice { get; set; }
+        public decimal? CampaignStartingPrice { get; set; }
 
         public bool IsPublished { get; set; }
 

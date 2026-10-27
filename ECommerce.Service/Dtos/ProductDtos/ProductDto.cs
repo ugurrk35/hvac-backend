@@ -20,6 +20,7 @@ namespace ECommerce.Service.Dtos.ProductDtos
         public string DocumentsDetails { get; set; }
         public decimal BasePrice { get; set; }
         public decimal? DiscountPrice { get; set; }
+        public decimal? CampaignStartingPrice { get; set; }
         public decimal EffectivePrice => DiscountPrice ?? BasePrice;
         public bool IsPublished { get; set; }
         public int Quantity { get; set; }

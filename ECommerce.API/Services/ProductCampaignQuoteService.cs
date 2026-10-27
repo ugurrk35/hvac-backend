@@ -76,9 +76,10 @@ public sealed class ProductCampaignQuoteService(ApplicationDbContext db)
 
         // StartingPrice is the campaign's product-inclusive base price. Adding the
         // product price again here doubles the advertised campaign amount.
-        var total = package.StartingPrice + location.PriceAdjustment + selections.Sum(item => item.PriceAdjustment);
+        var startingPrice = product.CampaignStartingPrice ?? package.StartingPrice;
+        var total = startingPrice + location.PriceAdjustment + selections.Sum(item => item.PriceAdjustment);
         if (total < 0) throw new ArgumentException("Kampanya toplamı geçersiz.");
-        return new ProductCampaignQuoteResult(package.Id, product.Id, package.Title, package.StartingPrice, city, district, location.PriceAdjustment, selections, total);
+        return new ProductCampaignQuoteResult(package.Id, product.Id, package.Title, startingPrice, city, district, location.PriceAdjustment, selections, total);
     }
 }
 

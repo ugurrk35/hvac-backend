@@ -70,7 +70,7 @@ public static class ProductCategoryMappings
     public static ProductDto ToDto(this Product source) => new()
     {
         Id = source.Id, Name = source.Name, Slug = source.Slug, SKU = source.SKU, ShortDescription = source.ShortDescription,
-        Description = source.Description, TechnicalDetails = source.TechnicalDetails, DeliveryInstallationDetails = source.DeliveryInstallationDetails, DocumentsDetails = source.DocumentsDetails, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
+        Description = source.Description, TechnicalDetails = source.TechnicalDetails, DeliveryInstallationDetails = source.DeliveryInstallationDetails, DocumentsDetails = source.DocumentsDetails, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice, CampaignStartingPrice = source.CampaignStartingPrice is > 0 ? source.CampaignStartingPrice : null,
         IsPublished = source.IsPublished, Quantity = source.Quantity, MetaTitle = source.MetaTitle,
         MetaDescription = source.MetaDescription, MetaKeywords = source.MetaKeywords, CanonicalUrl = source.CanonicalUrl,
         OgTitle = source.OgTitle, OgDescription = source.OgDescription, OgImage = source.OgImage,
@@ -87,7 +87,7 @@ public static class ProductCategoryMappings
     public static Product ToEntity(this CreateProductDto source) => new()
     {
         Name = source.Name, Slug = source.Slug, SKU = source.SKU, ShortDescription = source.ShortDescription,
-        Description = source.Description, TechnicalDetails = source.TechnicalDetails, DeliveryInstallationDetails = source.DeliveryInstallationDetails, DocumentsDetails = source.DocumentsDetails, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice,
+        Description = source.Description, TechnicalDetails = source.TechnicalDetails, DeliveryInstallationDetails = source.DeliveryInstallationDetails, DocumentsDetails = source.DocumentsDetails, BasePrice = source.BasePrice, DiscountPrice = source.DiscountPrice, CampaignStartingPrice = source.CampaignStartingPrice is > 0 ? source.CampaignStartingPrice : null,
         IsPublished = source.IsPublished, Quantity = source.Quantity, MetaTitle = source.MetaTitle,
         MetaDescription = source.MetaDescription, MetaKeywords = source.MetaKeywords, CanonicalUrl = source.CanonicalUrl,
         OgTitle = source.OgTitle, OgDescription = source.OgDescription, OgImage = source.OgImage,
@@ -98,7 +98,7 @@ public static class ProductCategoryMappings
     public static void ApplyTo(this UpdateProductDto source, Product target)
     {
         target.Name = source.Name; target.Slug = source.Slug; target.SKU = source.SKU; target.ShortDescription = source.ShortDescription;
-        target.Description = source.Description; target.TechnicalDetails = source.TechnicalDetails; target.DeliveryInstallationDetails = source.DeliveryInstallationDetails; target.DocumentsDetails = source.DocumentsDetails; target.BasePrice = source.BasePrice; target.DiscountPrice = source.DiscountPrice;
+        target.Description = source.Description; target.TechnicalDetails = source.TechnicalDetails; target.DeliveryInstallationDetails = source.DeliveryInstallationDetails; target.DocumentsDetails = source.DocumentsDetails; target.BasePrice = source.BasePrice; target.DiscountPrice = source.DiscountPrice; target.CampaignStartingPrice = source.CampaignStartingPrice is > 0 ? source.CampaignStartingPrice : null;
         target.IsPublished = source.IsPublished; target.Quantity = source.Quantity; target.MetaTitle = source.MetaTitle;
         target.MetaDescription = source.MetaDescription; target.MetaKeywords = source.MetaKeywords; target.CanonicalUrl = source.CanonicalUrl;
         target.OgTitle = source.OgTitle; target.OgDescription = source.OgDescription; target.OgImage = source.OgImage;

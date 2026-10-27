@@ -20,6 +20,7 @@ namespace ECommerce.Domain.Entity
         public string DocumentsDetails { get; set; } = string.Empty; // Ürüne özel doküman açıklaması
         public decimal BasePrice { get; set; }                       // Fiyat
         public decimal? DiscountPrice { get; set; }                  // İndirimli fiyat
+        public decimal? CampaignStartingPrice { get; set; }          // Ürüne özel kampanya başlangıç fiyatı
         public bool IsPublished { get; set; }                        // Yayında mı?
         public int Quantity { get; set; }                            // Stok
         public ICollection<ProductPrice> ProductPrices { get; set; } // fiyatlar (farklı müşteri grupları için)
