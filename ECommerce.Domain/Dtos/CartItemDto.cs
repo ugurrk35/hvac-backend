@@ -20,6 +20,8 @@ namespace ECommerce.Domain.Dtos
         public string? ImageUrl { get; set; }
         public decimal TotalPrice { get; set; }
         public string? PersonalizationText { get; set; }
+        public int? ProductCampaignPackageId { get; set; }
+        public string? CampaignSnapshotJson { get; set; }
         public List<CartItemAttributeDto> Attributes { get; set; } = new();
     }
 

@@ -755,6 +755,8 @@ public class ShoppingCartRepository : GenericRepository<ShoppingCart>, IShopping
                     TotalPrice = unitPrice * ci.Quantity,
 
                     PersonalizationText = ci.PersonalizationText,
+                    ProductCampaignPackageId = ci.ProductCampaignPackageId,
+                    CampaignSnapshotJson = ci.CampaignSnapshotJson,
                     ImageUrl = imageUrl,
                     Attributes = attributes
                 };
