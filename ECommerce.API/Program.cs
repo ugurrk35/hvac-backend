@@ -286,6 +286,22 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     app.Logger.LogInformation("Veritabanı migration kontrolü başlatılıyor.");
     await db.Database.MigrateAsync();
+    // First-run legal CMS pages. They are only inserted when missing; admins can
+    // edit every title and rich-text body later from CMS Sayfaları.
+    var legalPages = new[]
+    {
+        ("Mesafeli Satış Sözleşmesi", "mesafeli-satis-sozlesmesi", "<h2>Mesafeli Satış Sözleşmesi</h2><p>Bu sözleşme, kombiklimaburada.com üzerinden yapılan alışverişlerde satıcı ile alıcı arasındaki hak ve yükümlülükleri düzenler.</p><h2>Sipariş ve teslimat</h2><p>Sipariş onayı, ürün bedeli ve teslimat bilgileri ödeme adımında alıcıya sunulur. Teslimat süreleri ürün ve hizmet kapsamına göre değişebilir.</p><h2>Cayma hakkı</h2><p>Alıcı, yürürlükteki mevzuat kapsamındaki cayma hakkını ve istisnalarını kullanabilir. Ürüne özel koşullar için müşteri hizmetleriyle iletişime geçebilirsiniz.</p>"),
+        ("K.V.K.K. Aydınlatma Metni", "kvkk-aydinlatma-metni", "<h2>Kişisel Verilerin Korunması</h2><p>Kişisel verileriniz, siparişin oluşturulması, teslimatın planlanması, müşteri desteği ve yasal yükümlülüklerin yerine getirilmesi amacıyla işlenir.</p><h2>Haklarınız</h2><p>6698 sayılı Kanun kapsamındaki başvuru, düzeltme, silme ve bilgi alma haklarınızı kullanmak için iletişim kanallarımız üzerinden başvurabilirsiniz.</p>"),
+        ("Gizlilik ve Kullanım Şartları", "gizlilik-ve-kullanim-sartlari", "<h2>Gizlilik</h2><p>Hesap, sipariş ve iletişim bilgileriniz hizmetin sunulması için gerekli güvenlik önlemleriyle saklanır. Bilgileriniz yasal zorunluluklar dışında izniniz olmadan üçüncü kişilerle paylaşılmaz.</p><h2>Kullanım şartları</h2><p>Site içerikleri bilgilendirme amaçlıdır. Ürün fiyatı, stok ve kampanya bilgileri ödeme adımında tekrar doğrulanır.</p>"),
+        ("Garanti ve İade", "garanti-ve-iade", "<h2>Garanti</h2><p>Ürünlerin garanti koşulları üretici veya yetkili servis tarafından belirlenir. Garanti belgesi ve fatura saklanmalıdır.</p><h2>İade</h2><p>İade talepleri yürürlükteki tüketici mevzuatı ve ürünün niteliğine göre değerlendirilir. Başvuru için sipariş numaranızla müşteri hizmetlerine ulaşabilirsiniz.</p>"),
+        ("Üyelik Sözleşmesi", "uyelik-sozlesmesi", "<h2>Üyelik koşulları</h2><p>Üyelik oluştururken verdiğiniz bilgilerin doğru ve güncel olması sizin sorumluluğunuzdadır. Hesap güvenliği için şifrenizi üçüncü kişilerle paylaşmayın.</p><h2>Hesabın kullanımı</h2><p>Üyelik, siparişleri takip etmek ve kayıtlı bilgileri yönetmek için kullanılır. Mevzuata veya kullanım koşullarına aykırı kullanımda hesap kısıtlanabilir.</p>")
+    };
+    foreach (var (title, slug, contentHtml) in legalPages)
+    {
+        if (!await db.CmsPages.AnyAsync(page => page.Slug == slug))
+            db.CmsPages.Add(new CmsPage { Title = title, Slug = slug, ContentHtml = contentHtml, MetaTitle = title, IsPublished = true, IsActive = true, IsDeleted = false, CreatedAt = DateTime.UtcNow, CreatedBy = "System" });
+    }
+    await db.SaveChangesAsync();
     // Legacy databases can have a migration-history entry without the archive columns.
     // This is idempotent and keeps startup self-healing until all environments converge.
     await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Orders\" ADD COLUMN IF NOT EXISTS \"ArchiveReason\" character varying(1000);");
